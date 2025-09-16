@@ -13,6 +13,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,6 +31,14 @@ public class WebController {
     @GetMapping("/hello")
     public String hello(){
         return "Hello";
+    }
+
+    // Protected endpoint - requires JWT authentication
+    @GetMapping("/protected")
+    public ResponseEntity<?> protectedEndpoint() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUser = authentication.getName();
+        return ResponseEntity.ok("Hello " + currentUser + "! This is a protected endpoint.");
     }
 
     @PostMapping("/signup")
@@ -48,6 +58,7 @@ public class WebController {
             );
 
             if (authentication.isAuthenticated()){
+                // Return JWT token for authenticated user
                 return new ResponseEntity<>(jwtService.generateToken(authRequest.getEmail()), HttpStatus.OK);
 //                return ResponseEntity.ok("Login successful");
             }else {
